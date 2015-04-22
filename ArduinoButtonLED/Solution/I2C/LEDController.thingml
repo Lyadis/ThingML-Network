@@ -1,0 +1,59 @@
+import "Msgs.thingml"
+
+configuration LEDControllerCfg {
+	instance a : ArduinoScheduler
+	instance lc : LEDController
+	instance vp : VirtualPort
+	
+	connector vp.LEDport => lc.LEDport
+	connector lc.arduino => a.arduino
+	
+}
+
+thing VirtualPort includes Msgs {
+	required port LEDport {
+			receives LEDControllerReady
+			sends LEDON, LEDOFF
+		}
+		
+	statechart EmptyChart init Empty {
+		state Empty{}
+	}
+}
+
+thing LEDController includes Msgs, ArduinoApplication 
+@c_header "
+#include <Wire.h>
+#include </home/sintef/Documents/DemoThingMLNetwork/lib/ArduinoI2CForward/ArduinoI2CForwardMaster.h>
+"
+{
+	property LEDpin : UInt8 = 7
+	
+	provided port LEDport {
+		sends LEDControllerReady
+		receives LEDON, LEDOFF
+	}
+	
+	statechart LEDControllerChart init Init {
+		state Init {
+			transition -> Idle event arduino?ready action do
+				arduino!setOutput(LEDpin)
+				LEDport!LEDControllerReady()
+				'Serial.println("[Controller] Init");'
+			end
+		}
+		
+		state Idle {
+			internal event LEDport?LEDON action do
+				'Serial.println("[Controller] LEDON");'
+				arduino!setDigitalHigh(LEDpin)
+			end
+			
+			internal event LEDport?LEDOFF action do
+				'Serial.println("[Controller] LEDOFF");'
+				arduino!setDigitalLow(LEDpin)
+			end
+		}
+	}
+}
+

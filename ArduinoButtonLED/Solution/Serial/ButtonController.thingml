@@ -1,0 +1,76 @@
+import "Msgs.thingml"
+
+configuration ButtonControllerCfg {
+	instance a : ArduinoScheduler
+	instance bc : ButtonController
+	instance vp : VirtualPort
+	
+	connector bc.LEDport => vp.LEDport
+	connector bc.arduino => a.arduino
+}
+
+thing VirtualPort includes Msgs {
+	provided port LEDport {
+			sends LEDControllerReady
+			receives LEDON, LEDOFF
+		}
+		
+	statechart EmptyChart init Empty {
+		state Empty{}
+	}
+}
+
+thing ButtonController includes Msgs, ArduinoApplication 
+@c_header "
+#include <SoftwareSerial.h>
+#include </home/sintef/Documents/DemoThingMLNetwork/lib/ArduinoSerialForward.h>
+"
+{
+	property Buttonpin : UInt8 = 7
+	
+	property ButtonIsPressed : Boolean = false
+	property LEDON : Boolean = false
+	
+	required port LEDport {
+		receives LEDControllerReady
+		sends LEDON, LEDOFF
+	}
+	
+	statechart LEDControllerChart init Init {
+		state Init {
+			transition -> Idle event LEDport?LEDControllerReady action do
+				arduino!setInput(Buttonpin)
+				
+				'Serial.println("[Controller] Init");'
+			end
+		}
+		
+		state Idle {
+			internal event arduino?100ms_interrupt action do
+				arduino!readDigital(Buttonpin)
+			end
+			
+			internal event e : arduino?readDigitalResponse action do
+				if((not(ButtonIsPressed)) and (e.DigitalState == DigitalState:HIGH)) do
+					//The button has been pressed
+					ButtonIsPressed = true
+					
+					if(LEDON) do
+						LEDport!LEDOFF()
+						'Serial.println("[Controller] LEDOFF");'
+					end
+					if(not(LEDON)) do
+						LEDport!LEDON()
+						'Serial.println("[Controller] LEDON");'
+					end
+					LEDON = not(LEDON)
+				end
+				
+				if(e.DigitalState == DigitalState:LOW) do
+					ButtonIsPressed = false
+				end
+			end
+		}
+	}
+}
+

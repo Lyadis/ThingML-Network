@@ -1,0 +1,7 @@
+import "../../lib/_Arduino.thingml"
+
+thing fragment Msgs {
+	message LEDControllerReady();
+	message LEDON();
+	message LEDOFF();
+}

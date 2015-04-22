@@ -1,0 +1,36 @@
+/*---------------------------------*/
+/* ------- LED Controller -------- */
+/*---------------------------------*/
+
+// Enqueue of messages LEDController::LEDport::LEDControllerReady
+void enqueue_LEDController_send_LEDport_LEDControllerReady(struct LEDController_Instance *_instance){
+forwardByteSerial_Start();
+forwardByteSerial( (3 >> 8) & 0xFF );
+forwardByteSerial( 3 & 0xFF );
+forwardByteSerial( (2 >> 8) & 0xFF );
+forwardByteSerial( 2 & 0xFF );
+forwardByteSerial_Stop();
+}
+
+/* ----------- Main ----------- */
+
+void setup() {
+setupArduinoSerialForward(9600);
+initialize_configuration_LEDControllerCfg();
+ArduinoScheduler_handle_polling_setup(&LEDControllerCfg_a_var);
+
+}
+
+void loop() {
+readSerial();
+ArduinoScheduler_handle_polling_poll(&LEDControllerCfg_a_var);
+
+processMessageQueue();
+}
+
+/*---------------------------------*/
+/* ------ Button Controller ------ */
+/*---------------------------------*/
+
+
+/* ----------- Main ----------- */

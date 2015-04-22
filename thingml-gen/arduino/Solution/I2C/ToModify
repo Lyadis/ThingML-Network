@@ -1,0 +1,77 @@
+
+/*---------------------------------*/
+/* ------- LED Controller -------- */
+/*---------------------------------*/
+
+void enqueue_LEDController_send_LEDport_LEDControllerReady(struct LEDController_Instance *_instance){
+I2CaddToSendBuffer( (3 >> 8) & 0xFF );
+I2CaddToSendBuffer( 3 & 0xFF );
+I2CaddToSendBuffer( (2 >> 8) & 0xFF );
+I2CaddToSendBuffer( 2 & 0xFF );
+I2Csend(2);
+}
+
+/* ----------- Main ----------- */
+
+void setup() {
+  setup_I2C();
+initialize_configuration_LEDControllerCfg();
+ArduinoScheduler_handle_polling_setup(&LEDControllerCfg_a_var);
+
+}
+
+void loop() {
+I2Cread();
+ArduinoScheduler_handle_polling_poll(&LEDControllerCfg_a_var);
+
+processMessageQueue();
+}
+
+
+/*---------------------------------*/
+/* ------ Button Controller ------ */
+/*---------------------------------*/
+
+
+// Enqueue of messages ButtonController::LEDport::LEDON
+void enqueue_ButtonController_send_LEDport_LEDON(struct ButtonController_Instance *_instance){
+ if(I2CsendBuffer_byte_available() > 5) {
+  #ifdef DEBUGG
+    Serial.println("[enough space for 6 bytes]");
+  #endif
+    _I2CsendBuffer_enqueue(4);
+    _I2CsendBuffer_enqueue( (2 >> 8) & 0xFF );
+    _I2CsendBuffer_enqueue( 2 & 0xFF );
+    _I2CsendBuffer_enqueue( (0 >> 8) & 0xFF );
+    _I2CsendBuffer_enqueue( 0 & 0xFF );
+  }
+}
+// Enqueue of messages ButtonController::LEDport::LEDOFF
+void enqueue_ButtonController_send_LEDport_LEDOFF(struct ButtonController_Instance *_instance){
+ if(I2CsendBuffer_byte_available() > 5) {
+  #ifdef DEBUGG
+    Serial.println("[enough space for 6 bytes]");
+  #endif
+    _I2CsendBuffer_enqueue(4);
+    _I2CsendBuffer_enqueue( (1 >> 8) & 0xFF );
+    _I2CsendBuffer_enqueue( 1 & 0xFF );
+    _I2CsendBuffer_enqueue( (0 >> 8) & 0xFF );
+    _I2CsendBuffer_enqueue( 0 & 0xFF );
+  }
+}
+
+
+/* ----------- Main ----------- */
+
+void setup() {
+setup_I2C();
+initialize_configuration_ButtonControllerCfg();
+ArduinoScheduler_handle_polling_setup(&ButtonControllerCfg_a_var);
+
+}
+
+void loop() {
+ArduinoScheduler_handle_polling_poll(&ButtonControllerCfg_a_var);
+
+processMessageQueue();
+}

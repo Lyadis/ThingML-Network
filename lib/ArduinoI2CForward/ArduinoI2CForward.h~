@@ -1,0 +1,22 @@
+#ifndef ArduinoI2CForwardMster_h
+#define ArduinoI2CForwardMster_h
+
+#include <Wire.h>
+#define _NB_SLAVES 1
+#define _MSGS_LENGTH 8
+
+#define DEBUGG
+
+byte I2Caddr[_NB_SLAVES];
+byte I2CsendBuffer[_MSGS_LENGTH];
+byte I2CsendBufferIndice = 0;
+
+void setup_I2C();
+
+void I2Csend(byte addr);
+
+void I2CaddToSendBuffer(byte b);
+
+void I2Cread();
+
+#endif
